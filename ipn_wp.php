@@ -107,10 +107,10 @@ if ($fp) {
             $for   = $buyer;
             // all seems to be in order, credit it.
             if ($pack == 1) {
-                item_add($for, $set['willp_item'], 1);
+                item_add($for, (int) $set['willp_item'], 1);
 
             } elseif ($pack == 5) {
-                item_add($for, $set['willp_item'], 5);
+                item_add($for, (int) $set['willp_item'], 5);
 
             }
             // process payment

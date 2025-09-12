@@ -86,7 +86,7 @@ if ($_POST['price'] && $_POST['QTY'] && $_GET['ID'])
                      {$_POST['QTY']})");
         }
         $db->free_result($checkq);
-        item_remove($userid, $r['inv_itemid'], $_POST['QTY']);
+        item_remove($userid, (int) $r['inv_itemid'], $_POST['QTY']);
         $imadd_log =
                 $db->escape(
                         "{$ir['username']} added {$r['itmname']} "

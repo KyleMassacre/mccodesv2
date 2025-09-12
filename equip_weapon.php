@@ -50,9 +50,9 @@ if (isset($_POST['type']))
     }
     if ($ir[$_POST['type']] > 0)
     {
-        item_add($userid, $ir[$_POST['type']], 1);
+        item_add($userid, (int) $ir[$_POST['type']], 1);
     }
-    item_remove($userid, $r['itmid'], 1);
+    item_remove($userid, (int) $r['itmid'], 1);
     $db->query(
             "UPDATE `users`
             SET `{$_POST['type']}` = {$r['itmid']}

@@ -24,7 +24,7 @@ if ($ir[$_GET['type']] == 0)
     $h->endpage();
     exit;
 }
-item_add($userid, $ir[$_GET['type']], 1);
+item_add($userid, (int) $ir[$_GET['type']], 1);
 $db->query(
         "UPDATE `users`
         SET `{$_GET['type']}` = 0
