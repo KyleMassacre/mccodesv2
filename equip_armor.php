@@ -49,9 +49,9 @@ if (isset($_POST['type']))
     }
     if ($ir['equip_armor'] > 0)
     {
-        item_add($userid, $ir['equip_armor'], 1);
+        item_add($userid, (int) $ir['equip_armor'], 1);
     }
-    item_remove($userid, $r['itmid'], 1);
+    item_remove($userid, (int) $r['itmid'], 1);
     $db->query(
             "UPDATE `users`
              SET `equip_armor` = {$r['itmid']}

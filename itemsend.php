@@ -64,8 +64,8 @@ if (!empty($_POST['qty']) && !empty($_POST['user']))
         else
         {
             $rm = $db->fetch_row($m);
-            item_remove($userid, $r['inv_itemid'], $_POST['qty']);
-            item_add($_POST['user'], $r['inv_itemid'], $_POST['qty']);
+            item_remove($userid, (int) $r['inv_itemid'], $_POST['qty']);
+            item_add($_POST['user'], (int) $r['inv_itemid'], $_POST['qty']);
             echo 'You sent ' . $_POST['qty'] . ' ' . $r['itmname'] . '(s) to '
                     . $rm['username'];
             event_add($_POST['user'],

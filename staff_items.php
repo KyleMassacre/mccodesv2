@@ -354,7 +354,7 @@ function give_item_submit(): void
     }
     $db->free_result($q);
     $db->free_result($q2);
-    item_add($_POST['user'], $_POST['item'], $_POST['qty']);
+    item_add($_POST['user'], (int) $_POST['item'], $_POST['qty']);
     stafflog_add(
             "Gave {$_POST['qty']} of item ID {$_POST['item']} to user ID {$_POST['user']}");
     echo 'You gave ' . $_POST['qty'] . ' of item ID ' . $_POST['item']

@@ -63,7 +63,7 @@ else
         }
 
         $price = (int)($itemd['itmbuyprice'] * $_POST['qty']);
-        item_add($userid, $itemd['itmid'], $_POST['qty']);
+        item_add($userid, (int) $itemd['itmid'], (int) $_POST['qty']);
         $db->query(
                 "UPDATE `users`
         		 SET `money` = `money` - $price

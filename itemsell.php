@@ -51,7 +51,7 @@ if (!empty($_POST['qty']) && !empty($_GET['ID']))
         else
         {
             $price = (int)($r['itmsellprice'] * $_POST['qty']);
-            item_remove($userid, $r['itmid'], $_POST['qty']);
+            item_remove($userid, (int) $r['itmid'], $_POST['qty']);
             $db->query(
                     "UPDATE `users`
                      SET `money` = `money` + {$price}

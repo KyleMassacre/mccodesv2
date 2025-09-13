@@ -176,7 +176,7 @@ function itemm_remove(): void
         exit;
     }
     $r = $db->fetch_row($q);
-    item_add($userid, $r['imITEM'], $r['imQTY']);
+    item_add($userid, (int) $r['imITEM'], $r['imQTY']);
     $i = ($db->insert_id()) ? $db->insert_id() : 99999;
     $db->query("DELETE FROM `itemmarket`
     			WHERE `imID` = {$_GET['ID']}");
@@ -314,7 +314,7 @@ function item_buy(): void
             $h->endpage();
             exit;
         }
-        item_add($userid, $r['imITEM'], $_POST['QTY']);
+        item_add($userid, (int) $r['imITEM'], $_POST['QTY']);
         $i = ($db->insert_id()) ? $db->insert_id() : 99999;
         if ($_POST['QTY'] == $r['imQTY'])
         {
@@ -573,7 +573,7 @@ function item_gift2(): void
 function send_gift(array $data, string $currency, int $final_price): void
 {
     global $db, $ir, $userid;
-    item_add($_POST['user'], $data['imITEM'], $_POST['QTY']);
+    item_add($_POST['user'], (int) $data['imITEM'], $_POST['QTY']);
     $i = ($db->insert_id()) ? $db->insert_id() : 99999;
     if ($_POST['QTY'] == $data['imQTY']) {
         $db->query("DELETE FROM `itemmarket` WHERE `imID` = {$_POST['ID']}");

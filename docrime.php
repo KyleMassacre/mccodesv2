@@ -76,7 +76,7 @@ else
                     WHERE `userid` = $userid");
             if ($r['crimeSUCCESSITEM'])
             {
-                item_add($userid, $r['crimeSUCCESSITEM'], 1);
+                item_add($userid, (int) $r['crimeSUCCESSITEM'], 1);
             }
         } elseif (rand(1, 2) == 1) {
             print $r['crimeFTEXT'];
