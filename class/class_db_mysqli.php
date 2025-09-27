@@ -108,15 +108,16 @@ class database
 
     /**
      * @param $query
+     * @param mixed ...$params
      * @return mysqli_result|bool
      */
-    public function query($query): mysqli_result|bool
+    public function query($query, ...$params): mysqli_result|bool
     {
         $this->last_query = $query;
         $this->queries[]  = $query;
         $this->num_queries++;
         $this->result =
-            mysqli_query($this->connection_id, $this->last_query);
+            mysqli_execute_query($this->connection_id, $this->last_query, $params);
         if ($this->result === false) {
             error_critical(mysqli_errno($this->connection_id) . ': '
                 . mysqli_error($this->connection_id),
