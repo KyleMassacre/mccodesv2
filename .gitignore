@@ -2,3 +2,6 @@
 .DS_Store
 config.php
 vendor
+install/installer.php
+install/installer_foot.php
+install/installer_head.php
