@@ -41,7 +41,7 @@ if ($ir['bankmoney'] > -1)
             . "!<br />
 <a href='bank.php'>Start using my account</a>";
         $db->query(
-            "UPDATE `users` SET `money` = `money` - {$bank_cost}, `bankmoney` = 0 WHERE `userid` = $userid");
+            "UPDATE `users` SET `money` = `money` - ?, `bankmoney` = 0 WHERE `userid` = ?", $bank_cost, $userid);
     } else {
         echo "You do not have enough money to open an account.
 <a href='explore.php'>Back to town...</a>";
@@ -94,8 +94,8 @@ function deposit(): void
         $gain = $_POST['deposit'] - $fee;
         $ir['bankmoney'] += $gain;
         $db->query(
-                "UPDATE `users` SET `bankmoney` = `bankmoney` + $gain,
-                        `money` = `money` - {$_POST['deposit']} WHERE `userid` = $userid");
+                "UPDATE `users` SET `bankmoney` = `bankmoney` + ?,
+                        `money` = `money` - ? WHERE `userid` = ?", $gain, $_POST['deposit'], $userid);
         echo 'You hand over ' . money_formatter($_POST['deposit'])
                 . ' to be deposited, <br />
 after the fee is taken (' . money_formatter($fee) . ', '
@@ -124,8 +124,8 @@ function withdraw(): void
         $gain = $_POST['withdraw'];
         $ir['bankmoney'] -= $gain;
         $db->query(
-                "UPDATE `users` SET `bankmoney` = `bankmoney` - $gain,
-                        `money` = `money` + $gain WHERE `userid` = $userid");
+                "UPDATE `users` SET `bankmoney` = `bankmoney` - ?,
+                        `money` = `money` + ? WHERE `userid` = ?", $gain, $gain, $userid);
         echo 'You ask to withdraw ' . money_formatter($gain)
                 . ', <br />
 the banking lady grudgingly hands it over. <br />

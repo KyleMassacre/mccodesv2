@@ -18,7 +18,7 @@ $_SESSION['attacking'] = 0;
 $_SESSION['attacklost'] = 0;
 $od =
         $db->query(
-                "SELECT `username`, `level`, `gang` FROM `users` WHERE `userid` = {$_GET['ID']}");
+                "SELECT `username`, `level`, `gang` FROM `users` WHERE `userid` = ?", $_GET['ID']);
 if ($db->num_rows($od) > 0)
 {
     $r = $db->fetch_row($od);
@@ -30,27 +30,27 @@ if ($db->num_rows($od) > 0)
     // Figure out their EXP, 0 or decreased?
     $newexp = max($ir['exp'] - $expgain, 0);
     $db->query(
-            "UPDATE `users` SET `exp` = {$newexp}, `attacking` = 0 WHERE `userid` = $userid");
+            "UPDATE `users` SET `exp` = ?, `attacking` = 0 WHERE `userid` = ?", $newexp, $userid);
     event_add($r['userid'],
         "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> attacked you and lost.");
     $atklog = $db->escape($_SESSION['attacklog']);
-    $db->query(
-            "INSERT INTO `attacklogs` VALUES(NULL, $userid, {$_GET['ID']},
-                    'lost', " . time() . ", 0, '$atklog')");
+
+    attacklog_add($userid, $_GET['ID'], 'lost', 0, $atklog);
+
     if ($ir['gang'] > 0 && $r['gang'] > 0)
     {
         $warq =
                 $db->query(
                         "SELECT * FROM `gangwars`
-                            WHERE (`warDECLARER` = {$ir['gang']} AND `warDECLARED` = {$r['gang']})
-                            OR (`warDECLARED` = {$ir['gang']} AND `warDECLARER` = {$r['gang']})");
+                            WHERE (`warDECLARER` = ? AND `warDECLARED` = ?)
+                            OR (`warDECLARED` = ? AND `warDECLARER` = ?)", $ir['gang'], $r['gang'], $ir['gang'], $r['gang']);
         if ($db->num_rows($warq) > 0)
         {
             $war = $db->fetch_row($warq);
             $db->query(
-                    "UPDATE `gangs` SET `gangRESPECT` = `gangRESPECT` + 1 WHERE `gangID` = {$r['gang']}");
+                    "UPDATE `gangs` SET `gangRESPECT` = `gangRESPECT` + 1 WHERE `gangID` = ?", $r['gang']);
             $db->query(
-                    "UPDATE `gangs` SET `gangRESPECT` = `gangRESPECT` - 1 WHERE `gangID` = {$ir['gang']}");
+                    "UPDATE `gangs` SET `gangRESPECT` = `gangRESPECT` - 1 WHERE `gangID` = ?", $ir['gang']);
             echo '<br />You lost 1 respect for your gang!';
         }
         $db->free_result($warq);

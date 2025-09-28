@@ -62,8 +62,8 @@ EOF;
         $IP = $db->escape($_SERVER['REMOTE_ADDR']);
         $db->query(
             "UPDATE `users`
-                 SET `laston` = {$_SERVER['REQUEST_TIME']}, `lastip` = '$IP'
-                 WHERE `userid` = $userid");
+                 SET `laston` = ?, `lastip` = ?
+                 WHERE `userid` = ?", $_SERVER['REQUEST_TIME'], $IP, $userid);
         if (!$ir['email']) {
             global $domain;
             die(
@@ -77,7 +77,7 @@ EOF;
             $db->query(
                 "UPDATE `users`
                      SET `exp` = 0, `attacking` = 0
-                     WHERE `userid` = $userid");
+                     WHERE `userid` = ?", $userid);
             $_SESSION['attacking'] = 0;
         }
         $enperc = min((int)($ir['energy'] / $ir['maxenergy'] * 100), 100);
@@ -134,7 +134,7 @@ OUT;
                 $db->query(
                     "SELECT *
                              FROM `fedjail`
-                             WHERE `fed_userid` = $userid");
+                             WHERE `fed_userid` = ?", $userid);
             $r = $db->fetch_row($q);
             die(
             "<span style='font-weight: bold; color:red;'>

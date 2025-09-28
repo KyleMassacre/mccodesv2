@@ -63,8 +63,8 @@ if (isset($jobquery) && $jobquery)
                      LEFT JOIN `jobs` AS `j` ON `j`.`jID` = `u`.`job`
                      LEFT JOIN `jobranks` AS `jr`
                      ON `jr`.`jrID` = `u`.`jobrank`
-                     WHERE `u`.`userid` = {$userid}
-                     LIMIT 1");
+                     WHERE `u`.`userid` = ?
+                     LIMIT 1", $userid);
 }
 elseif (isset($housequery) && $housequery)
 {
@@ -75,8 +75,8 @@ elseif (isset($housequery) && $housequery)
                      INNER JOIN `userstats` AS `us`
                      ON `u`.`userid`=`us`.`userid`
                      LEFT JOIN `houses` AS `h` ON `h`.`hWILL` = `u`.`maxwill`
-                     WHERE `u`.`userid` = {$userid}
-                     LIMIT 1");
+                     WHERE `u`.`userid` = ?
+                     LIMIT 1", $userid);
 }
 else
 {
@@ -86,8 +86,8 @@ else
                      FROM `users` AS `u`
                      INNER JOIN `userstats` AS `us`
                      ON `u`.`userid`=`us`.`userid`
-                     WHERE `u`.`userid` = {$userid}
-                     LIMIT 1");
+                     WHERE `u`.`userid` = ?
+                     LIMIT 1", $userid);
 }
 $ir = $db->fetch_row($is);
 set_userdata_data_types($ir);
@@ -96,7 +96,7 @@ if ($ir['force_logout'] > 0)
     $db->query(
             "UPDATE `users`
     			SET `force_logout` = 0
-    			WHERE `userid` = {$userid}");
+    			WHERE `userid` = ?", $userid);
     session_unset();
     session_destroy();
     $login_url = "https://{$domain}/login.php";

@@ -48,10 +48,10 @@ $odata_sql =
 	       `guard`, `agility`, `strength`, `gender`
 	FROM `users` AS `u`
 	INNER JOIN `userstats` AS `us` ON `u`.`userid` = `us`.`userid`
-	WHERE `u`.`userid` = {$_GET['ID']}
+	WHERE `u`.`userid` = ?
 	LIMIT 1
 SQL;
-$q = $db->query($odata_sql);
+$q = $db->query($odata_sql, $_GET['ID']);
 if ($db->num_rows($q) == 0)
 {
     echo 'That user doesn&#39;t exist<br />&gt; <a href="index.php">Go Home</a>';
@@ -73,13 +73,13 @@ $endattk_sql =
         <<<SQL
 	UPDATE `users`
 	SET `attacking` = 0
-	WHERE `userid` = {$userid}
+	WHERE `userid` = ?
 SQL;
 if ($odata['hp'] == 1)
 {
     $_SESSION['attacking'] = 0;
     $ir['attacking'] = 0;
-    $db->query($endattk_sql);
+    $db->query($endattk_sql, $userid);
     echo 'This player is unconscious.<br />&gt; <a href="index.php">Go Home</a>';
     $h->endpage();
     exit;
@@ -88,7 +88,7 @@ elseif ($odata['hospital'])
 {
     $_SESSION['attacking'] = 0;
     $ir['attacking'] = 0;
-    $db->query($endattk_sql);
+    $db->query($endattk_sql, $userid);
     echo 'This player is in hospital.<br />&gt; <a href="index.php">Go Home</a>';
     $h->endpage();
     exit;
@@ -97,7 +97,7 @@ elseif ($ir['hospital'])
 {
     $_SESSION['attacking'] = 0;
     $ir['attacking'] = 0;
-    $db->query($endattk_sql);
+    $db->query($endattk_sql, $userid);
     echo 'While in hospital you can\'t attack.<br />&gt; <a href="index.php">Go Home</a>';
     $h->endpage();
     exit;
@@ -106,7 +106,7 @@ elseif ($odata['jail'])
 {
     $_SESSION['attacking'] = 0;
     $ir['attacking'] = 0;
-    $db->query($endattk_sql);
+    $db->query($endattk_sql, $userid);
     echo 'This player is in jail.<br />&gt; <a href="index.php">Go Home</a>';
     $h->endpage();
     exit;
@@ -115,7 +115,7 @@ elseif ($ir['jail'])
 {
     $_SESSION['attacking'] = 0;
     $ir['attacking'] = 0;
-    $db->query($endattk_sql);
+    $db->query($endattk_sql, $userid);
     echo 'While in jail you can\'t attack.<br />&gt; <a href="index.php">Go Home</a>';
     $h->endpage();
     exit;
@@ -144,8 +144,8 @@ if ($_GET['wepid'])
             $youdata['energy'] -= floor($youdata['maxenergy'] / 2);
             $cost = floor($youdata['maxenergy'] / 2);
             $db->query(
-                    "UPDATE `users` SET `energy` = `energy` - {$cost} "
-                            . "WHERE `userid` = {$userid}");
+                    "UPDATE `users` SET `energy` = `energy` - ? "
+                            . "WHERE `userid` = ?", $cost. $userid);
             $_SESSION['attacklog'] = '';
             $_SESSION['attackdmg'] = 0;
         }
@@ -161,10 +161,10 @@ if ($_GET['wepid'])
     $attackstatus_sql =
             <<<SQL
    		UPDATE `users`
-    	SET `attacking` = {$ir['attacking']}
-    	WHERE `userid` = {$userid}
+    	SET `attacking` = ?
+    	WHERE `userid` = ?
 SQL;
-    $db->query($attackstatus_sql);
+    $db->query($attackstatus_sql, $ir['attacking'], $userid);
     if ($_GET['wepid'] != $ir['equip_primary']
             && $_GET['wepid'] != $ir['equip_secondary'])
     {
@@ -172,9 +172,9 @@ SQL;
                 <<<SQL
         	UPDATE `users`
         	SET `exp` = 0
-        	WHERE `userid` = {$userid}
+        	WHERE `userid` = ?
 SQL;
-        $db->query($abuse_sql);
+        $db->query($abuse_sql, $userid);
         echo 'Stop trying to abuse a game bug. You can lose all your EXP for that.<br />&gt; <a href="index.php">Go Home</a>';
         $h->endpage();
         exit;
@@ -183,10 +183,10 @@ SQL;
             <<<SQL
     	SELECT `itmname`, `weapon`
     	FROM `items`
-    	WHERE `itmid` = {$_GET['wepid']}
+    	WHERE `itmid` = ?
     	LIMIT 1
 SQL;
-    $qo = $db->query($winfo_sql);
+    $qo = $db->query($winfo_sql, $_GET['wepid']);
     if ($db->num_rows($qo) == 0)
     {
         echo 'That weapon doesn&#39;t exist...';
@@ -207,10 +207,10 @@ SQL;
                     <<<SQL
             	SELECT `armor`
             	FROM `items`
-            	WHERE `itmid` = {$odata['equip_armor']}
+            	WHERE `itmid` = ?
             	LIMIT 1
 SQL;
-            $q3 = $db->query($armorinfo_sql);
+            $q3 = $db->query($armorinfo_sql, $odata['equip_armor']);
             if ($db->num_rows($q3) > 0)
             {
                 $mydamage -= $db->fetch_single($q3);
@@ -242,7 +242,7 @@ SQL;
             $mydamage += 1;
         }
         $db->query(
-                "UPDATE `users` SET `hp` = `hp` - $mydamage WHERE `userid` = {$_GET['ID']}");
+                "UPDATE `users` SET `hp` = `hp` - ? WHERE `userid` = ?", $mydamage, $_GET['ID']);
         echo "<font color=red>{$_GET['nextstep']}. Using your {$r1['itmname']} you hit {$odata['username']} doing $mydamage damage ({$odata['hp']})</font><br />\n";
         $_SESSION['attackdmg'] += $mydamage;
         $_SESSION['attacklog'] .=
@@ -259,7 +259,7 @@ SQL;
         $odata['hp'] = 0;
         $_SESSION['attackwon'] = $_GET['ID'];
         $db->query(
-                "UPDATE `users` SET `hp` = 0 WHERE `userid` = {$_GET['ID']}");
+                "UPDATE `users` SET `hp` = 0 WHERE `userid` = ?", $_GET['ID']);
         echo "
 <br />
 <b>What do you want to do with {$odata['username']} now?</b><br />
@@ -274,7 +274,7 @@ SQL;
 
         $eq =
                 $db->query(
-                        "SELECT `itmname`,`weapon` FROM  `items` WHERE `itmid` IN({$odata['equip_primary']}, {$odata['equip_secondary']})");
+                        "SELECT `itmname`,`weapon` FROM  `items` WHERE `itmid` IN(?, ?)", $odata['equip_primary'], $odata['equip_secondary']);
         if ($db->num_rows($eq) == 0)
         {
             $wep = 'Fists';
@@ -306,7 +306,7 @@ SQL;
             {
                 $q3 =
                         $db->query(
-                                "SELECT `armor` FROM `items` WHERE `itmid` = {$ir['equip_armor']} LIMIT 1");
+                                "SELECT `armor` FROM `items` WHERE `itmid` = ? LIMIT 1", $ir['equip_armor']);
                 if ($db->num_rows($q3) > 0)
                 {
                     $dam -= $db->fetch_single($q3);
@@ -338,7 +338,7 @@ SQL;
                 $youdata['hp'] = 0;
             }
             $db->query(
-                    "UPDATE `users` SET `hp` = `hp` - $dam WHERE `userid` = $userid");
+                    "UPDATE `users` SET `hp` = `hp` - ? WHERE `userid` = ?", $dam, $userid);
             $ns = $_GET['nextstep'] + 1;
             echo "<font color=blue>{$ns}. Using $oabbr $wep {$odata['username']} hit you doing $dam damage ({$youdata['hp']})</font><br />\n";
             $_SESSION['attacklog'] .=
@@ -355,7 +355,7 @@ SQL;
         {
             $youdata['hp'] = 0;
             $_SESSION['attacklost'] = 1;
-            $db->query("UPDATE `users` SET `hp` = 0 WHERE `userid` = $userid");
+            $db->query("UPDATE `users` SET `hp` = 0 WHERE `userid` = ?", $userid);;
             echo "<form action='attacklost.php?ID={$_GET['ID']}' method='post'><input type='submit' value='Continue' />";
         }
     }

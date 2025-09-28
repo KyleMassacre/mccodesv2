@@ -27,15 +27,15 @@ $q =
                         `u`.`userid`, `username`, `level`, `hp`, `maxhp`, `location`, `hospital`, `jail`
                 FROM `challengebots` AS `cb`
                 LEFT JOIN `users` AS `u` ON `cb`.`cb_npcid` = `u`.`userid`
-                LEFT JOIN `challengesbeaten` AS `c` ON `c`.`npcid` = `u`.`userid` AND `c`.`userid` = $userid
-                LEFT JOIN `cities` AS `cy` ON `u`.`location` = `cy`.`cityid`");
+                LEFT JOIN `challengesbeaten` AS `c` ON `c`.`npcid` = `u`.`userid` AND `c`.`userid` = ?
+                LEFT JOIN `cities` AS `cy` ON `u`.`location` = `cy`.`cityid`", $userid);
 while ($r = $db->fetch_row($q))
 {
     $earn = $r['cb_money'];
     $v = $r['userid'];
     $countq =
             $db->query(
-                    "SELECT COUNT(`npcid`) FROM `challengesbeaten` WHERE `npcid` = $v");
+                    "SELECT COUNT(`npcid`) FROM `challengesbeaten` WHERE `npcid` = ?", $v);
     $times = $db->fetch_single($countq);
     $db->free_result($countq);
     echo "<tr><td>{$r['username']}</td><td>{$r['level']}</td><td>$times</td><td>";

@@ -111,8 +111,7 @@ function crystal_remove(): void
     }
     $q =
             $db->query(
-                    'SELECT `cmQTY` FROM `crystalmarket` WHERE `cmID` = '
-                            . $_GET['ID'] . ' AND `cmADDER` = ' . $userid);
+                    'SELECT `cmQTY` FROM `crystalmarket` WHERE `cmID` = ? AND `cmADDER` = ?', $_GET['ID'], $userid);
     if (!$db->num_rows($q))
     {
         echo "Error, either these crystals do not exist, or you are not the owner.
@@ -124,9 +123,9 @@ function crystal_remove(): void
     $r = $db->fetch_row($q);
     $db->free_result($q);
     $db->query(
-            'UPDATE `users` SET `crystals` = `crystals` + ' . $r['cmQTY']
-                    . ' WHERE `userid` = ' . $userid);
-    $db->query('DELETE FROM `crystalmarket` WHERE `cmID` = ' . $_GET['ID']);
+            'UPDATE `users` SET `crystals` = `crystals` + ?
+                    WHERE `userid` = ?',$r['cmQTY'], $userid);
+    $db->query('DELETE FROM `crystalmarket` WHERE `cmID` = ?', $_GET['ID']);
     echo "
 	Crystals removed from market!
 	<br />
@@ -151,8 +150,7 @@ function crystal_buy(): void
     }
     $q =
             $db->query(
-                    'SELECT `cmPRICE`, `cmQTY`, `cmADDER` FROM `crystalmarket` WHERE `cmID` = '
-                            . $_GET['ID']);
+                    'SELECT `cmPRICE`, `cmQTY`, `cmADDER` FROM `crystalmarket` WHERE `cmID` = ?', $_GET['ID']);
     if (!$db->num_rows($q))
     {
         echo '
@@ -192,24 +190,19 @@ function crystal_buy(): void
             exit;
         }
         $db->query(
-                'UPDATE `users` SET `crystals` = `crystals` + '
-                        . $_POST['QTY'] . ', `money` = `money` - ' . $cprice
-                        . ' WHERE `userid` = ' . $userid);
+                'UPDATE `users` SET `crystals` = `crystals` + ?, `money` = `money` - ? WHERE `userid` = ?', $_POST['QTY'], $cprice, $userid);
         if ($_POST['QTY'] < $r['cmQTY'])
         {
             $db->query(
-                    'UPDATE `crystalmarket` SET `cmQTY` = `cmQTY` - '
-                            . $_POST['QTY'] . ' WHERE `cmID` = ' . $_GET['ID']);
+                    'UPDATE `crystalmarket` SET `cmQTY` = `cmQTY` - ? WHERE `cmID` = ?', $_POST['QTY'], $_GET['ID']);
         }
         elseif ($_POST['QTY'] == $r['cmQTY'])
         {
             $db->query(
-                    'DELETE FROM `crystalmarket` WHERE `cmID` = '
-                            . $_GET['ID']);
+                    'DELETE FROM `crystalmarket` WHERE `cmID` = ?', $_GET['ID']);
         }
         $db->query(
-                'UPDATE `users` SET `money` = `money` + ' . $cprice
-                        . ' WHERE `userid` = ' . $r['cmADDER']);
+                'UPDATE `users` SET `money` = `money` + ? WHERE `userid` = ?', $cprice, $r['cmADDER']);
 
         event_add($r['cmADDER'],
             "<a href='viewuser.php?u=$userid'>{$ir['username']}</a> bought of {$_POST['QTY']} your crystals from the market for "
@@ -266,17 +259,13 @@ function crystal_add(): void
 
         $ql =
                 $db->query(
-                        'SELECT `cmID` FROM `crystalmarket` WHERE cmADDER = '
-                                . $userid . ' AND cmPRICE = '
-                                . $_POST['price']);
+                        'SELECT `cmID` FROM `crystalmarket` WHERE cmADDER = ? AND cmPRICE = ?', $_POST['price'], $userid, $_POST['price']);
         if ($db->num_rows($ql))
         {
             $gc = $db->fetch_row($ql);
             $db->free_result($ql);
             $db->query(
-                    'UPDATE `crystalmarket` SET `cmQTY` = `cmQTY` + '
-                            . $_POST['amnt'] . ' WHERE `cmID` = '
-                            . $gc['cmID']);
+                    'UPDATE `crystalmarket` SET `cmQTY` = `cmQTY` + ? WHERE `cmID` = ?', $_POST['amnt'], $gc['cmID']);
 
         }
         else
@@ -284,13 +273,10 @@ function crystal_add(): void
             $db->free_result($ql);
             $tp = $_POST['price'];
             $db->query(
-                    'INSERT INTO `crystalmarket` VALUES(NULL, '
-                            . $_POST['amnt'] . ', ' . $userid . ', ' . $tp
-                            . ')');
+                    'INSERT INTO `crystalmarket` VALUES(NULL, ?, ?, ?)', $_POST['amnt'], $userid, $tp);
         }
         $db->query(
-                'UPDATE `users` SET `crystals` = `crystals` - '
-                        . $_POST['amnt'] . ' WHERE userid = ' . $userid);
+                'UPDATE `users` SET `crystals` = `crystals` - ? WHERE userid = ?', $_POST['amnt'], $userid);
         echo '
 	Crystals added to market!
 	<br />

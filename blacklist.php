@@ -82,8 +82,8 @@ Most hated: [";
                     `u`.`laston`, `donatordays`, `username`, `userid`
                     FROM `blacklist` AS `bl`
                     LEFT JOIN `users` AS `u` ON `bl`.`bl_ADDED` = `u`.`userid`
-                    WHERE `bl`.`bl_ADDER` = $userid
-                    ORDER BY `u`.`username` ASC");
+                    WHERE `bl`.`bl_ADDER` = ?
+                    ORDER BY `u`.`username` ASC", $userid);
     while ($r = $db->fetch_row($q))
     {
         $on =
@@ -136,10 +136,10 @@ function add_enemy(): void
     {
         $qc =
                 $db->query(
-                        "SELECT COUNT(`bl_ADDER`) FROM `blacklist` WHERE `bl_ADDER` = $userid AND `bl_ADDED` = {$_POST['ID']}");
+                        "SELECT COUNT(`bl_ADDER`) FROM `blacklist` WHERE `bl_ADDER` = ? AND `bl_ADDED` = ?", $userid, $_POST['ID']);
         $q =
                 $db->query(
-                        "SELECT `username` FROM `users` WHERE `userid` = {$_POST['ID']}");
+                        "SELECT `username` FROM `users` WHERE `userid` = ?", $_POST['ID']);
         $dupe_count = $db->fetch_single($qc);
         $db->free_result($qc);
         if ($dupe_count > 0)
@@ -158,11 +158,11 @@ function add_enemy(): void
         else
         {
             $db->query(
-                    "INSERT INTO `blacklist` VALUES(NULL, $userid, {$_POST['ID']}, '{$_POST['comment']}')");
+                    "INSERT INTO `blacklist` VALUES(NULL, ?, ?, ?)", $userid, $_POST['ID'], $_POST['comment']);
             $r = $db->fetch_row($q);
             $db->free_result($q);
             $db->query(
-                    "UPDATE `users` SET `enemy_count` = `enemy_count` + 1 WHERE `userid` = {$_POST['ID']}");
+                    "UPDATE `users` SET `enemy_count` = `enemy_count` + 1 WHERE `userid` = ?", $_POST['ID']);
             echo "{$r['username']} was added to your black list.<br />
 <a href='blacklist.php'>&gt; Back</a>";
         }
@@ -206,7 +206,7 @@ You didn\'t select a real enemy.<br />
 
     $q =
             $db->query(
-                    "SELECT `bl_ADDED` FROM `blacklist` WHERE `bl_ID` = {$_GET['b']} AND `bl_ADDER` = $userid");
+                    "SELECT `bl_ADDED` FROM `blacklist` WHERE `bl_ID` = ? AND `bl_ADDER` = ?", $_GET['b'], $userid);
     if ($db->num_rows($q) == 0)
     {
         echo 'Listing doesn\'t exist.';
@@ -216,9 +216,9 @@ You didn\'t select a real enemy.<br />
     $r = $db->fetch_row($q);
     $db->free_result($q);
     $db->query(
-            "DELETE FROM `blacklist` WHERE `bl_ID` = {$_GET['b']} AND `bl_ADDER` = $userid");
+            "DELETE FROM `blacklist` WHERE `bl_ID` = ? AND `bl_ADDER` = ?", $_GET['b'], $userid);
     $db->query(
-            "UPDATE `users` SET `enemy_count` = `enemy_count` - 1 WHERE `userid` = {$r['bl_ADDED']}");
+            "UPDATE `users` SET `enemy_count` = `enemy_count` - 1 WHERE `userid` = ?", $r['bl_ADDED']);
     echo "
 Black list entry removed!<br />
 <a href='blacklist.php'>&gt; Back</a>
@@ -241,7 +241,7 @@ function change_comment(): void
     if (!empty($_POST['comment']) && !empty($_POST['b']))
     {
         $db->query(
-                "UPDATE `blacklist` SET `bl_COMMENT` = '{$_POST['comment']}' WHERE `bl_ID` = {$_POST['b']} AND `bl_ADDER` = $userid");
+                "UPDATE `blacklist` SET `bl_COMMENT` = ? WHERE `bl_ID` = ? AND `bl_ADDER` = ?", $_POST['comment'], $_POST['b'], $userid);
         echo "
 Comment for enemy changed!<br />
 <a href='blacklist.php'>&gt; Back</a>
@@ -263,7 +263,7 @@ Invalid enemy.<br />
         }
         $q =
                 $db->query(
-                        "SELECT `bl_COMMENT` FROM `blacklist` WHERE `bl_ID` = {$_GET['b']} AND `bl_ADDER` = $userid");
+                        "SELECT `bl_COMMENT` FROM `blacklist` WHERE `bl_ID` = ? AND `bl_ADDER` = ?", $_GET['b'], $userid);
         if ($db->num_rows($q) > 0)
         {
             $r = $db->fetch_row($q);

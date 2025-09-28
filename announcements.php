@@ -46,6 +46,6 @@ if ($ir['new_announcements'] > 0)
 {
     $db->query(
             'UPDATE `users` ' . 'SET `new_announcements` = 0 '
-                    . "WHERE `userid` = '{$userid}'");
+                    . "WHERE `userid` = ?", $userid);
 }
 $h->endpage();

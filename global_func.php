@@ -722,11 +722,11 @@ function event_add(int $userid, string $text): int
     $text = $db->escape($text);
     $db->query(
             "INSERT INTO `events`
-             VALUES(NULL, $userid, " . time() . ", 0, '$text')");
+             VALUES(NULL, ?, " . time() . ", 0, ?)", $userid, $text);
     $db->query(
             "UPDATE `users`
              SET `new_events` = `new_events` + 1
-             WHERE `userid` = {$userid}");
+             WHERE `userid` = ?", $userid);
     return 1;
 }
 
@@ -755,11 +755,11 @@ function check_level(): void
                         * ($ir['level'] + 1) * 2.2);
         $db->query(
                 "UPDATE `users`
-                 SET `level` = `level` + 1, exp = {$expu},
+                 SET `level` = `level` + 1, exp = ?,
                  `energy` = `energy` + 2, `brave` = `brave` + 2,
                  `maxenergy` = `maxenergy` + 2, `maxbrave` = `maxbrave` + 2,
                  `hp` = `hp` + 50, `maxhp` = `maxhp` + 50
-                 WHERE `userid` = {$userid}");
+                 WHERE `userid` = ?", $expu, $userid);
     }
 }
 
@@ -779,7 +779,7 @@ function get_rank(int|float $stat, string $mykey): int
                     LEFT JOIN `users` AS `u`
                     ON `us`.`userid` = `u`.`userid`
                     WHERE {$mykey} > {$stat}
-                    AND `us`.`userid` != {$userid} AND `u`.`user_level` != 0");
+                    AND `us`.`userid` != ? AND `u`.`user_level` != 0", $userid);
     $result = $db->fetch_single($q) + 1;
     $db->free_result($q);
     return $result;
@@ -802,10 +802,10 @@ function item_add(int $user, int $itemid, int $qty, int $notid = 0): void
                 $db->query(
                         "SELECT `inv_id`
                          FROM `inventory`
-                         WHERE `inv_userid` = {$user}
-                         AND `inv_itemid` = {$itemid}
-                         AND `inv_id` != {$notid}
-                         LIMIT 1");
+                         WHERE `inv_userid` = ?
+                         AND `inv_itemid` = ?
+                         AND `inv_id` != ?
+                         LIMIT 1", $user, $itemid, $notid);
     }
     else
     {
@@ -813,24 +813,24 @@ function item_add(int $user, int $itemid, int $qty, int $notid = 0): void
                 $db->query(
                         "SELECT `inv_id`
                          FROM `inventory`
-                         WHERE `inv_userid` = {$user}
-                         AND `inv_itemid` = {$itemid}
-                         LIMIT 1");
+                         WHERE `inv_userid` = ?
+                         AND `inv_itemid` = ?
+                         LIMIT 1", $user, $itemid);
     }
     if ($db->num_rows($q) > 0)
     {
         $r = $db->fetch_row($q);
         $db->query(
                 "UPDATE `inventory`
-                SET `inv_qty` = `inv_qty` + {$qty}
-                WHERE `inv_id` = {$r['inv_id']}");
+                SET `inv_qty` = `inv_qty` + ?
+                WHERE `inv_id` = ?", $qty, $r['inv_id']);
     }
     else
     {
         $db->query(
                 "INSERT INTO `inventory`
                  (`inv_itemid`, `inv_userid`, `inv_qty`)
-                 VALUES ({$itemid}, {$user}, {$qty})");
+                 VALUES (?, ?, ?)", $itemid, $user, $qty);
     }
     $db->free_result($q);
 }
@@ -849,9 +849,9 @@ function item_remove(int $user, int $itemid, int $qty): void
             $db->query(
                     "SELECT `inv_id`, `inv_qty`
                      FROM `inventory`
-                     WHERE `inv_userid` = {$user}
-                     AND `inv_itemid` = {$itemid}
-                     LIMIT 1");
+                     WHERE `inv_userid` = ?
+                     AND `inv_itemid` = ?
+                     LIMIT 1", $user, $itemid);
     if ($db->num_rows($q) > 0)
     {
         $r = $db->fetch_row($q);
@@ -859,14 +859,14 @@ function item_remove(int $user, int $itemid, int $qty): void
         {
             $db->query(
                     "UPDATE `inventory`
-                     SET `inv_qty` = `inv_qty` - {$qty}
-                     WHERE `inv_id` = {$r['inv_id']}");
+                     SET `inv_qty` = `inv_qty` - ?
+                     WHERE `inv_id` = ?", $qty, $r['inv_id']);
         }
         else
         {
             $db->query(
                     "DELETE FROM `inventory`
-            		 WHERE `inv_id` = {$r['inv_id']}");
+            		 WHERE `inv_id` = ?", $r['inv_id']);
         }
     }
     $db->free_result($q);
@@ -962,7 +962,7 @@ function stafflog_add(string $text): void
     $text = $db->escape($text);
     $db->query(
             "INSERT INTO `stafflog`
-             VALUES(NULL, {$ir['userid']}, " . time() . ", '$text', '$IP')");
+             VALUES(NULL, ?, " . time() . ", ?, ?)", $ir['userid'], $text, $IP);
 }
 
 /**
@@ -1026,23 +1026,6 @@ function verify_csrf_code(string $formid, string $code): bool
     }
 }
 
-/**
- * Given a password input given by the user and their actual details,
- * determine whether the password entered was correct.
- *
- * Note that password-salt systems don't require the extra md5() on the $input.
- * This is only here to ensure backwards compatibility - that is,
- * a v2 game can be upgraded to use the password salt system without having
- * previously used it, without resetting every user's password.
- *
- * @param string $input The input password given by the user.
- * 						Should be without slashes.
- * @param string $salt 	The user's unique pass salt
- * @param string $pass	The user's encrypted password
- *
- * @return bool    true for equal, false for not (login failed etc)
- *
- */
 /**
  * Verify that the provided password matches the stored hash
  *
@@ -1296,7 +1279,7 @@ function check_access(string|array $permissions, ?int $target_id = null): bool
     $target_id ??= (int)$userid;
     // Get the target's roles
     $get_user_roles = $db->query(
-        'SELECT staff_role FROM users_roles WHERE userid = '.$target_id,
+        'SELECT staff_role FROM users_roles WHERE userid = ?', $target_id,
     );
     $target_roles = [];
     while ($role = $db->fetch_row($get_user_roles)) {
@@ -1308,7 +1291,7 @@ function check_access(string|array $permissions, ?int $target_id = null): bool
     }
     // Get the corresponding role data
     $get_staff_roles = $db->query(
-        'SELECT * FROM staff_roles WHERE id IN ('.implode(',', $target_roles).')',
+        'SELECT * FROM staff_roles WHERE id IN (?)',implode(',', $target_roles)
     );
     $role_permissions = [];
     while ($row = $db->fetch_row($get_staff_roles)) {
@@ -1344,7 +1327,7 @@ function is_staff(): bool
 {
     global $db, $userid;
     $preliminary = $db->query(
-        'SELECT COUNT(*) FROM users_roles WHERE staff_role > 0 AND userid = '.$userid,
+        'SELECT COUNT(*) FROM users_roles WHERE staff_role > 0 AND userid = ?', $userid
     );
     return $db->fetch_single($preliminary) > 0;
 }
@@ -1357,9 +1340,9 @@ function get_online_staff(?int $online_cutoff = null): array
         'SELECT u.userid, u.username, u.laston
         FROM users AS u
         INNER JOIN users_roles AS ur ON ur.userid = u.userid
-        WHERE ur.staff_role > 0 AND u.laston > ' .$online_cutoff. '
+        WHERE ur.staff_role > 0 AND u.laston > ?
         GROUP BY u.userid
-        ORDER BY userid'
+        ORDER BY userid', $online_cutoff
     );
     $rows = [];
     while ($r = $db->fetch_row($q)) {
@@ -1367,4 +1350,54 @@ function get_online_staff(?int $online_cutoff = null): array
     }
     $db->free_result($q);
     return $rows;
+}
+
+/**
+ * @param false|array|null $r
+ * @param database $db
+ * @param int $userid
+ * @return void
+ */
+function grantChallengeReward(false|array|null $r): void
+{
+    global $userid, $db;
+
+    if ($r['user_level'] == 0) {
+        $q =
+            $db->query(
+                "SELECT `cb_money` FROM `challengebots` WHERE `cb_npcid` = ?", $r['userid']);
+        if ($db->num_rows($q) > 0) {
+            $cb = $db->fetch_row($q);
+            $qk =
+                $db->query(
+                    "SELECT COUNT(`npcid`) FROM `challengesbeaten`
+                                        WHERE `userid` = ? AND `npcid` = ?", $userid, $r['userid']);
+            if ($db->fetch_single($qk) > 0) {
+                $m = (int)$cb['cb_money'];
+                $db->query(
+                    "UPDATE `users` SET `money` = `money` + ? WHERE `userid` = ?", $m, $userid);
+                echo '<br /> You gained ' . money_formatter($m)
+                    . " for beating the challenge bot {$r['username']}";
+                $db->query(
+                    "INSERT INTO `challengesbeaten` VALUES(? ,?)", $userid. $r['userid']);
+            }
+            $db->free_result($qk);
+        }
+        $db->free_result($q);
+    }
+}
+
+/**
+ * @param database $db
+ * @param int $userid
+ * @param int $stole
+ * @param string $atklog
+ * @return void
+ */
+function attacklog_add(int $attacker, int $attacked, string $result, int $stole, string $text): void
+{
+    global $db;
+    $db->query(
+        "INSERT INTO `attacklogs` VALUES(NULL, ?, ?,
+                        ?, " . time() . ", ?, ?)", $attacker, $attacked, $result, $stole, $text);
 }
