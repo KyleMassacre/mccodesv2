@@ -243,19 +243,19 @@ function new_user_submit(): void
     $hp = 50 + $level * 50;
     $salt = generate_pass_salt();
     $e_salt = $db->escape($salt);
-    $encpsw = encode_password($_POST['userpass'], $salt);
+    $encpsw = encode_password($_POST['userpass']);
     $e_encpsw = $db->escape($encpsw);
     $db->query(
             "INSERT INTO `users`
              (`username`, `login_name`, `userpass`, `level`, `money`,
              `crystals`, `donatordays`, `user_level`, `energy`, `maxenergy`,
              `will`, `maxwill`, `brave`, `maxbrave`, `hp`, `maxhp`, `location`,
-             `gender`,`signedup`, `email`, `bankmoney`, `pass_salt`)
+             `gender`,`signedup`, `email`, `bankmoney`)
              VALUES( '{$_POST['username']}', '{$_POST['login_name']}',
              '{$e_encpsw}', $level, $money, $crystals, $donator, $ulevel,
              $energy, $energy, 100, 100, $brave, $brave, $hp, $hp, 1,
              '{$_POST['gender']}', " . time()
-                    . ", '{$_POST['email']}', -1, '{$e_salt}')");
+                    . ", '{$_POST['email']}', -1)");
     $i = $db->insert_id();
     $db->query(
             "INSERT INTO `userstats`

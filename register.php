@@ -161,9 +161,7 @@ if (!empty($username))
                 register_footer();
             }
         }
-        $salt = generate_pass_salt();
-        $e_salt = $db->escape($salt);
-        $encpsw = encode_password($base_pw, $salt);
+        $encpsw = encode_password($base_pw);
         $e_encpsw = $db->escape($encpsw);
         $db->query(
                 "INSERT INTO `users`
@@ -172,12 +170,12 @@ if (!empty($username))
                  `energy`, `maxenergy`, `will`, `maxwill`, `brave`,
                  `maxbrave`, `hp`, `maxhp`, `location`, `gender`,
                  `signedup`, `email`, `bankmoney`, `lastip`,
-                 `lastip_signup`, `pass_salt`)
+                 `lastip_signup`)
                  VALUES('{$e_username}', '{$e_username}', '{$e_encpsw}', 1,
                  $sm, 0, 0, 1, 12, 12, 100, 100, 5, 5, 100, 100, 1,
                  '{$e_gender}', " . time()
                         . ",'{$e_email}', -1, '$IP',
-                 '$IP', '{$e_salt}')");
+                 '$IP')");
         $i = $db->insert_id();
         $db->query(
                 "INSERT INTO `userstats`

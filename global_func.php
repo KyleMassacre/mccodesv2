@@ -1043,30 +1043,41 @@ function verify_csrf_code(string $formid, string $code): bool
  * @return bool    true for equal, false for not (login failed etc)
  *
  */
-function verify_user_password(string $input, string $salt, string $pass): bool
+/**
+ * Verify that the provided password matches the stored hash
+ *
+ * Uses PHP's built-in password_verify() function which is secure against
+ * timing attacks and properly handles bcrypt hashes.
+ *
+ * @param string $input The plain text password submitted by the user
+ * @param string $hashedPassword The hashed password stored in the database
+ * @return bool Returns true if the password matches the hash, false otherwise
+ *
+ * @example
+ * $isValid = verify_user_password('user_password', '$2y$10$...hashed.value...');
+ */
+function verify_user_password(string $input, string $hashedPassword): bool
 {
-    return ($pass === encode_password($input, $salt));
+    return password_verify($input, $hashedPassword);
 }
 
 /**
- * Given a password and a salt, encode them to the form which is stored in
- * the game's database.
+ * Hash a password using the modern, secure bcrypt algorithm
  *
- * @param string $password 		The password to be encoded
- * @param string $salt			The user's unique pass salt
- * @param bool $already_md5	Whether the specified password is already
- * 								a md5 hash. This would be true for legacy
- * 								v2 passwords.
+ * Uses PHP's password_hash() function with PASSWORD_DEFAULT, which
+ * automatically uses the current recommended algorithm (bcrypt as of PHP 8.3)
+ * and includes a secure salt and appropriate cost factor.
  *
- * @return string	The resulting encoded password.
+ * @param string $password The plain text password to hash
+ * @return string Returns the hashed password ready for storage
+ *
+ * @example
+ * $hash = encode_password('my_secure_password');
+ * // Store $hash in database
  */
-function encode_password(string $password, string $salt, bool $already_md5 = false): string
+function encode_password(string $password): string
 {
-    if (!$already_md5)
-    {
-        $password = md5($password);
-    }
-    return md5($salt . $password);
+    return password_hash($password, PASSWORD_DEFAULT);
 }
 
 /**
