@@ -41,10 +41,10 @@ if ((strlen($username) > 31))
 $e_username = $db->escape($username);
 $q =
         $db->query(
-                "SELECT COUNT(`userid`) FROM users WHERE login_name = '{$e_username}' OR username = '{$e_username}'");
+                "SELECT COUNT(`userid`) FROM users WHERE login_name = ? OR username = ?", $e_username, $e_username);
 if ($db->fetch_single($q))
 {
-    echo '<font color=\'red\'>Invalid - Taken</font>';
+    echo '<font color=\'red\'>Invalid</font>';
 }
 else
 {
