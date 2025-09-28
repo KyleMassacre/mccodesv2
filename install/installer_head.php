@@ -17,7 +17,7 @@ ob_start();
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Mccodes Version 2.0.5b</title>
-<link href="css/installer.css" type="text/css" rel="stylesheet" />
+<link href="../css/installer.css" type="text/css" rel="stylesheet" />
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 </head>
 <body>
@@ -25,7 +25,7 @@ ob_start();
         class="table2">
         <tr>
             <td class="lgrad"></td>
-            <td class="center"><img src="title.jpg"
+            <td class="center"><img src="../title.jpg"
                 alt="Mccodes Version 2" /><br /> <!-- Begin Main Content -->
                 <h2>Installer</h2> <span
                 style='color: red; font-weight: bold;'> If

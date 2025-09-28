@@ -7,10 +7,6 @@ declare(strict_types=1);
  * License: MIT License
  */
 
-if (file_exists('./installer.lock'))
-{
-    exit;
-}
 const MONO_ON = 1;
 session_name('MCCSID');
 session_start();
@@ -19,10 +15,16 @@ if (!isset($_SESSION['started']))
     session_regenerate_id();
     $_SESSION['started'] = true;
 }
-require_once('installer_head.php');
-require_once('global_func.php');
-require_once('lib/installer_error_handler.php');
+require_once('./installer_head.php');
+require_once('../global_func.php');
+require_once('../lib/installer_error_handler.php');
 set_error_handler('error_php');
+
+if (file_exists('./installer.lock'))
+{
+    header('Location: https://'. determine_game_urlbase());
+}
+
 if (!isset($_GET['code']))
 {
     $_GET['code'] = '';
@@ -391,7 +393,7 @@ function install(): void
     }
     // Try to establish DB connection first...
     echo 'Attempting DB connection...<br />';
-    require_once("class/class_db_{$db_driver}.php");
+    require_once("../class/class_db_{$db_driver}.php");
     $db = new database();
     $db->configure($db_hostname, $db_username, $db_password, $db_database);
     $db->connect();
@@ -413,7 +415,7 @@ function install(): void
     $config_file =
             <<<EOF
 <?php
-            {$lit_config} = array(
+     {$lit_config} = array(
 	'hostname' => '{$e_db_hostname}',
 	'username' => '{$e_db_username}',
 	'password' => '{$e_db_password}',
@@ -424,12 +426,12 @@ function install(): void
 );
 ?>
 EOF;
-    $f = fopen('config.php', 'w');
+    $f = fopen('../config.php', 'w');
     fwrite($f, $config_file);
     fclose($f);
     echo '... file written.<br />';
     echo 'Writing base database schema...<br />';
-    $fo = fopen('dbdata.sql', 'r');
+    $fo = fopen('./dbdata.sql', 'r');
     $query = '';
     $lines = explode("\n", fread($fo, 1024768));
     fclose($fo);
@@ -449,9 +451,7 @@ EOF;
     echo 'Writing game configuration...<br />';
     $ins_username =
             $db->escape(htmlentities($adm_username, ENT_QUOTES, 'ISO-8859-1'));
-    $salt = generate_pass_salt();
-    $e_salt = $db->escape($salt);
-    $encpsw = encode_password($adm_pswd, $salt);
+    $encpsw = encode_password($adm_pswd);
     $e_encpsw = $db->escape($encpsw);
     $ins_email = $db->escape($adm_email);
     $IP = $db->escape($_SERVER['REMOTE_ADDR']);
@@ -468,28 +468,28 @@ EOF;
              `crystals`, `donatordays`, `user_level`, `energy`, `maxenergy`,
              `will`, `maxwill`, `brave`, `maxbrave`, `hp`, `maxhp`, `location`,
              `gender`, `signedup`, `email`, `bankmoney`, `lastip`,
-             `lastip_signup`, `pass_salt`, `display_pic`, `staffnotes`, `voted`, `user_notepad`)
-             VALUES ('{$ins_username}', '{$ins_username}', '{$e_encpsw}', 1,
+             `lastip_signup`, `display_pic`, `staffnotes`, `voted`, `user_notepad`)
+             VALUES (?, ?, ?, 1,
              100, 0, 0, 2, 12, 12, 100, 100, 5, 5, 100, 100, 1,
-             '{$adm_gender}', " . time()
-                    . ", '{$ins_email}', -1, '$IP', '$IP',
-             '{$e_salt}', '', '', '', '')");
+             ?, " . time()
+                    . ", ?, -1, ?, ?,
+            '', '', '', '')", $ins_username, $ins_username, $e_encpsw, $adm_gender, $ins_email, $IP, $IP);
     $i = $db->insert_id();
     $db->query(
             "INSERT INTO `userstats`
     		 VALUES($i, 10, 10, 10, 10, 10)");
     $db->query(
             "INSERT INTO `settings`
-             VALUES(NULL, 'game_name', '{$ins_game_name}', 'string')");
+             VALUES(NULL, 'game_name', ?, 'string')", $ins_game_name);
     $db->query(
             "INSERT INTO `settings`
-             VALUES(NULL, 'game_owner', '{$ins_game_owner}', 'string')");
+             VALUES(NULL, 'game_owner', ?, 'string')", $ins_game_owner);
     $db->query(
             "INSERT INTO `settings`
-             VALUES(NULL, 'paypal', '{$ins_paypal}', 'string')");
+             VALUES(NULL, 'paypal', ?, 'string')", $ins_paypal);
     $db->query(
             "INSERT INTO `settings`
-             VALUES(NULL, 'game_description', '{$ins_game_desc}', 'string')");
+             VALUES(NULL, 'game_description', ?, 'string')", $ins_game_desc);
     echo '... Done.<br />';
     $path = dirname($_SERVER['SCRIPT_FILENAME']);
     echo "
@@ -507,43 +507,13 @@ EOF;
     Alternatively, you can toggle the \"Use Timestamps Instead of Cron Jobs\" option in the Basic Settings on the Staff Panel to use timestamps instead.<br><br>
     Note: You <em>must</em> use one <strong>or</strong> the other. Using neither will mean no ticks/refills, etc., and using both will mean double updates. 
        ";
-    echo '<h3>Installer Security</h3>
-    Attempting to remove installer... ';
-    @unlink('./installer.php');
-    $success = !file_exists('./installer.php');
+    echo '<h3>Installer Security</h3>';
+
+    echo 'Attempting to lock installer... ';
+    @touch('./installer.lock');
+    $success = file_exists('installer.lock');
     echo "<span style='color: "
             . ($success ? "green;'>Succeeded" : "red;'>Failed")
             . '</span><br />';
-    if (!$success)
-    {
-        echo 'Attempting to lock installer... ';
-        @touch('./installer.lock');
-        $success2 = file_exists('installer.lock');
-        echo "<span style='color: "
-                . ($success2 ? "green;'>Succeeded" : "red;'>Failed")
-                . '</span><br />';
-        if ($success2)
-        {
-            echo "<span style='font-weight: bold;'>"
-                    . 'You should now remove installer.php from your server.'
-                    . '</span>';
-        }
-        else
-        {
-            echo "<span style='font-weight: bold; font-size: 20pt;'>"
-                    . 'YOU MUST REMOVE installer.php '
-                    . 'from your server.<br />'
-                    . 'Failing to do so will allow other people '
-                    . 'to run the installer again and potentially '
-                    . 'mess up your game entirely.' . '</span>';
-        }
-    }
-    else
-    {
-        require_once('installer_foot.php');
-        @unlink('./installer_head.php');
-        @unlink('./installer_foot.php');
-        exit;
-    }
 }
-require_once('installer_foot.php');
+require_once('./installer_foot.php');
