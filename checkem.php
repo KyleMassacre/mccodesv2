@@ -37,7 +37,7 @@ require_once('globals_nonauth.php');
 $email = isset($_POST['email']) ? stripslashes($_POST['email']) : '';
 if (empty($email))
 {
-    die("<font color='red'>Invalid - Blank</font>");
+    die("<font color='red'>Invalid</font>");
 }
 if (!valid_email($email))
 {
@@ -46,10 +46,10 @@ if (!valid_email($email))
 $e_email = $db->escape($email);
 $q =
         $db->query(
-                "SELECT COUNT(`userid`) FROM users WHERE `email` = '{$e_email}'");
+                "SELECT COUNT(`userid`) FROM users WHERE `email` = ?", $e_email);
 if ($db->fetch_single($q) != 0)
 {
-    echo '<font color=\'red\'>Invalid - Already In Use</font>';
+    echo '<font color=\'red\'>Invalid</font>';
 }
 else
 {
